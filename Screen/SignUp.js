@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 // import { TextInput, Button } from 'react-native-paper';
 import { Input , Button } from 'react-native-elements';
+import Color from '../Constant/Color'
 
 
 const SignUp = (props) => {
@@ -52,7 +53,7 @@ const SignUp = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#dff4f7',
+    backgroundColor: Color.backGroundColor,
     
   },
 });

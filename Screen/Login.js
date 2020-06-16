@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
-// import { Button } from 'react-native-paper';
-
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input, Button } from 'react-native-elements';
+import API from '../Constant/API';
+import Color from '../Constant/Color'
 
 
 
@@ -20,49 +20,83 @@ const Login = (props) => {
 
 
     const [ID, setID] = useState('')
+    const [firstTimeFetch, setFirstTimeFetch] = useState(false)
 
     const [password, setPassword] = useState("")
     const [Data, SetData] = useState([])
-    const fetchData = async () => {
-        console.log('stop')
-        await fetch('http://ae3466d1bf24.ngrok.io/')
-            .then(res => res.json()
-            )
-            .then(data => {
 
-                SetData(data)
+
+
+    const fetchData = async () => {
+        console.log('inside  api')
+        await fetch(`${API.localHost}login`, { // ngrok link + router
+            method: 'post',
+            headers: {
+                "content-Type": 'application/json' //
+            },
+            body: JSON.stringify({ // all information to post
+                userID: ID,
+                password: password
 
 
             })
+        }).then(res => res.json().then(data => {
+
+            console.log(data)
+            SetData(data)
+        })).catch(er => { console.log(er) })
+        // console.log('out ')
+        setFirstTimeFetch(true)
+
+
 
     }
 
     useEffect(() => {
-        fetchData() // fetch all logn account from DB
-
+        try {
+            fetchData() // fetch all logn account from DB
+        }
+        catch{
+            er => { }
+        }
     })
 
 
     // Add new user
-    const AddData = (id, password) => {
-        if (!Data.find(Element => Element.userID === id)) {
+    const AddData = (userID, password) => {
+        fetch(`${API.localHost}signup`, { // ngrok link + router
+            method: 'post',
+            headers: {
+                "content-Type": 'application/json' //
+            },
+            body: JSON.stringify({ // all information to post
+                userID,
+                password
+
+
+            })
+        }).then(res => res.json().then(data => {
+            console.log("inside")
+            SetData(data)
+        }))
+
+        if (Data.userID === userID) {
+
+
+            Alert.alert('This user id is already taken')
+
+        }
+        else {
             props.navigation.goBack()
             Alert.alert('your account has been successfully created ')
-            // SetData(preItem => {
-            //     return [{ id, password }, ...preItem]
-
-
-
-            // // }
-
-            // )
-            fetch("http://ae3466d1bf24.ngrok.io/send-data", { // ngrok link + router
+  //save user data in DB 
+            fetch(`${API.localHost}send-data`, { // ngrok link + router
                 method: 'post',
                 headers: {
                     "content-Type": 'application/json' //
                 },
                 body: JSON.stringify({ // all information to post
-                    userID: id,
+                    userID,
                     password
 
 
@@ -70,11 +104,7 @@ const Login = (props) => {
             }).then(res => res.json().then(data => {
                 console.log(data)
             }))
-
-
-
         }
-        else { Alert.alert('This user id is already taken') }
 
 
 
@@ -83,18 +113,20 @@ const Login = (props) => {
 
     }
 
-    // checking enter login id and password is correct 
+    // fetch data andchecking enter login id , password is correct 
 
-    const LoginCheck = () => {
+    const LoginCheck = async () => {
+        await fetchData()
+        if (firstTimeFetch) {
+            if (Data.userID === ID && Data.password === password) {
+
+                return props.route.params.setLoginScreen(false)
+            }
 
 
 
-        if (Data.find(Element => Element.userID === ID && Element.password === password)) {
-
-            return props.navigation.replace('Home')
+            Alert.alert('Error', 'Enter invalid password or User id')
         }
-        Alert.alert('Error', 'Enter invalid password or User id')
-
     }
 
 
@@ -130,7 +162,7 @@ const Login = (props) => {
 
 
             <View style={styles.button}>
-                <Button type="clear" title='Login' onPress={() => LoginCheck()} />
+                <Button type="clear" title='Login' onPress={LoginCheck} />
 
                 <Button type="clear" title='Sign up' onPress={() => props.navigation.navigate('Signup', { AddData: AddData })} />
 
@@ -145,7 +177,7 @@ const Login = (props) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#dff4f7',
+        backgroundColor: Color.backGroundColor,
 
 
     },
